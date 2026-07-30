@@ -1,0 +1,45 @@
+name: adaptive-enforcer-validation
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: azure/setup-bicep@v2
+        with:
+          version: v0.31.92
+      - name: Install and audit runtime dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r requirements.txt pip-audit==2.9.0
+          python -m pip_audit -r requirements.txt
+      - name: Validate enforcer
+        run: ./scripts/validate.sh
+      - name: Generate source SBOM
+        uses: anchore/sbom-action@v0.17.2
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: enforcer.sbom.json
+          upload-artifact: true
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

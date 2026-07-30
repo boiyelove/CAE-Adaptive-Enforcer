@@ -1,0 +1,36 @@
+{
+  "breakGlassUserIds": [
+    "99999999-9999-4999-8999-999999999999"
+  ],
+  "schemaVersion": "1.0",
+  "signals": {
+    "device_noncompliant": {
+      "domain": "device",
+      "weight": 30
+    },
+    "high_user_risk": {
+      "domain": "identity",
+      "weight": 50
+    },
+    "impossible_travel": {
+      "domain": "identity",
+      "weight": 25
+    },
+    "outside_named_location": {
+      "domain": "network",
+      "weight": 30
+    },
+    "token_replay_indicator": {
+      "domain": "network",
+      "weight": 45
+    }
+  },
+  "tenantId": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "thresholds": {
+    "futureSkewSeconds": 60,
+    "maxEventAgeSeconds": 300,
+    "minSignalDomains": 2,
+    "revokeScore": 75,
+    "stepUpScore": 40
+  }
+}

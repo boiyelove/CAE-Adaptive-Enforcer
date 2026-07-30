@@ -1,0 +1,5 @@
+* @project-maintainers
+/src/ @identity-security-reviewers
+/function_app.py @identity-security-reviewers
+/config/ @identity-security-reviewers
+/infra/ @platform-reviewers
