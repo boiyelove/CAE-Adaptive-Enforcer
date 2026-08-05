@@ -11,27 +11,35 @@ tamper-evident decision chain.
 authentication context or downstream policy integration; this sample does not
 mutate Conditional Access policies per event.
 
-## Example synopsis
+## Problem statement
 
 Fresh multi-domain risk events are correlated into monitor, step-up, quarantine, or session-revocation decisions while break-glass users, duplicates, collisions, and stale evidence are handled safely.
 
-## Real-world scenario
+A production implementation can still fail even when every resource deploys successfully. The material risk is apparently successful automation that lacks bounded scope, a reproducible denial path, or evidence operators can use during review and recovery. The design therefore treats Entra ID, Event Hubs, Functions, and the surrounding identity and evidence controls as one reviewable system rather than unrelated configuration tasks.
+
+## Example case study
+
+### Situation
 
 A security team needs to react to token theft faster than normal access-token expiry. The enforcer turns high-confidence risk signals into explainable interventions without claiming that every client supports instantaneous CAE enforcement.
 
+### Response
+
+A risky sign-in and device-compliance change arrive seconds apart for one session. The enforcer deduplicates the stream, evaluates current state, issues the bounded revocation once, and preserves evidence responders can use to explain the decision.
+
+The team first exercises the repository's synthetic approved and denied fixtures. An approved request must produce the same idempotent plan on replay; a stale, unscoped, public, or unapproved request must fail before an Azure adapter is allowed to run.
+
+### Expected outcome
+
+Stakeholders receive a decision package they can attach to a change record: requested scope, controls evaluated, the reason for approval or denial, and the explicit handoff to live integration. The example supports design review and incident rehearsal without pretending that a local test changed Azure.
+
 ## Architecture
 
-```mermaid
-flowchart LR
-  I[Identity Protection] --> E[Event Grid]
-  N[Network analytics] --> E
-  E --> F[Managed-identity Function]
-  F --> R[Deterministic rules engine]
-  R --> G[Graph revokeSignInSessions]
-  R --> C[Step-up integration intent]
-  R --> A[Versioned immutable audit Blob]
-  F --> L[Log Analytics alerts]
-```
+![Icon-based architecture for CAE-Adaptive-Enforcer](docs/architecture.svg)
+
+The upper boundary names the principal services and technologies used by this repository. The lower boundary shows the implemented control flow: desired state is validated, provider action remains an explicit integration gate, and sanitized evidence is retained for review and deterministic replay.
+
+Azure product icons come from [Microsoft's official Azure Architecture Icons](https://learn.microsoft.com/azure/architecture/icons/). Open-source marks are sourced from [Simple Icons](https://simpleicons.org/) when shown; each mark identifies its respective technology.
 
 ## Reproduce the vertical slice
 
@@ -52,10 +60,10 @@ hash-chained evidence, not raw user identifiers.
 
 ## Azure application asset
 
-[[`function_app.py`](function_app.py)](function_app.py) is an Azure Functions Event Grid adapter. It obtains tokens
+[`function_app.py`](function_app.py) is an Azure Functions Event Grid adapter. It obtains tokens
 with managed identity, calls Graph only for a `revoke_sessions` decision, and
 writes one immutable audit Blob per event. Dependencies are pinned in
-[[`requirements.txt`](requirements.txt)](requirements.txt).
+[`requirements.txt`](requirements.txt).
 
 The managed identity requires admin-consented Microsoft Graph application
 permission `User.RevokeSessions.All` (`77f3a031-c388-4f99-b373-dc68676a979e`).
