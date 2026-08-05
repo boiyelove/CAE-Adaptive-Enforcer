@@ -55,6 +55,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = if (deployPlatfor
 }
 
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if (deployPlatform) {
+  #disable-next-line BCP334
   name: storageName
   location: location
   kind: 'StorageV2'
@@ -105,7 +106,6 @@ resource auditImmutability 'Microsoft.Storage/storageAccounts/blobServices/conta
   properties: {
     allowProtectedAppendWrites: true
     immutabilityPeriodSinceCreationInDays: 30
-    state: 'Unlocked'
   }
 }
 
@@ -141,9 +141,9 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = if (deployPlatform) {
       ipSecurityRestrictions: [
         {
           action: 'Allow'
+          ipAddress: 'AzureEventGrid'
           name: 'AzureEventGrid'
           priority: 100
-          serviceTag: 'AzureEventGrid'
           tag: 'ServiceTag'
         }
       ]
@@ -232,7 +232,7 @@ resource topic 'Microsoft.EventGrid/topics@2023-12-15-preview' = if (deployPlatf
   }
 }
 
-resource subscription 'Microsoft.EventGrid/topics/eventSubscriptions@2023-12-15-preview' = if (deployPlatform && deployEventSubscription) {
+resource eventSubscription 'Microsoft.EventGrid/topics/eventSubscriptions@2023-12-15-preview' = if (deployPlatform && deployEventSubscription) {
   parent: topic
   name: 'adaptive-enforcer'
   properties: {

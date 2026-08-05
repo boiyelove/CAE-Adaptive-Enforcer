@@ -11,6 +11,14 @@ tamper-evident decision chain.
 authentication context or downstream policy integration; this sample does not
 mutate Conditional Access policies per event.
 
+## Example synopsis
+
+Fresh multi-domain risk events are correlated into monitor, step-up, quarantine, or session-revocation decisions while break-glass users, duplicates, collisions, and stale evidence are handled safely.
+
+## Real-world scenario
+
+A security team needs to react to token theft faster than normal access-token expiry. The enforcer turns high-confidence risk signals into explainable interventions without claiming that every client supports instantaneous CAE enforcement.
+
 ## Architecture
 
 ```mermaid
@@ -44,10 +52,10 @@ hash-chained evidence, not raw user identifiers.
 
 ## Azure application asset
 
-`function_app.py` is an Azure Functions Event Grid adapter. It obtains tokens
+[[`function_app.py`](function_app.py)](function_app.py) is an Azure Functions Event Grid adapter. It obtains tokens
 with managed identity, calls Graph only for a `revoke_sessions` decision, and
 writes one immutable audit Blob per event. Dependencies are pinned in
-`requirements.txt`.
+[[`requirements.txt`](requirements.txt)](requirements.txt).
 
 The managed identity requires admin-consented Microsoft Graph application
 permission `User.RevokeSessions.All` (`77f3a031-c388-4f99-b373-dc68676a979e`).
@@ -81,3 +89,16 @@ at that instant.
 See [architecture](docs/architecture.md), [threat model](docs/threat-model.md),
 [runbook](docs/runbook.md), [test matrix](docs/test-matrix.md), and
 [cost model](docs/cost-model.md).
+
+## Repository guide
+
+- [Architecture](docs/architecture.md)
+- [Threat model](docs/threat-model.md)
+- [Operations runbook](docs/runbook.md)
+- [Test matrix](docs/test-matrix.md)
+- [Cost model](docs/cost-model.md)
+- [Security policy](SECURITY.md)
+- [Contributing guide](CONTRIBUTING.md)
+- [Support policy](SUPPORT.md)
+- [Changelog](CHANGELOG.md)
+- [License](LICENSE)
