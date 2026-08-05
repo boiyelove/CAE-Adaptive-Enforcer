@@ -39,6 +39,14 @@ Stakeholders receive a decision package they can attach to a change record: requ
 
 The upper boundary names the principal services and technologies used by this repository. The lower boundary shows the implemented control flow: desired state is validated, provider action remains an explicit integration gate, and sanitized evidence is retained for review and deterministic replay.
 
+## Best complementary diagram
+
+**Recommended view: Risk-correlation and adaptive-enforcement sequence diagram.** A sequence view is the strongest complement because it exposes runtime order, trust hand-offs, fail-closed decisions, and the evidence returned to the caller.
+
+![Icon-based risk-correlation and adaptive-enforcement sequence diagram for CAE Adaptive Enforcer](docs/operational-view.svg)
+
+The view follows **Ingest tenant risk signals → Validate freshness and scope → Correlate and protect → Enforce and chain evidence**. Use it during design reviews, operational walkthroughs, and failure-mode discussions; use the logical architecture above when the question is which technologies integrate.
+
 ## Reproduce the vertical slice
 
 The rules engine uses Python 3.11+ and no third-party packages.
