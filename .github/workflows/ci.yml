@@ -26,7 +26,7 @@ jobs:
       - name: Validate enforcer
         run: ./scripts/validate.sh
       - name: Generate source SBOM
-        uses: anchore/sbom-action@v0.17.2
+        uses: anchore/sbom-action@v0.24.0
         with:
           path: .
           format: cyclonedx-json
