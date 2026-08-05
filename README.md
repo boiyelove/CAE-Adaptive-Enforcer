@@ -11,6 +11,19 @@ tamper-evident decision chain.
 authentication context or downstream policy integration; this sample does not
 mutate Conditional Access policies per event.
 
+## Project metadata
+
+The metadata below is derived from tracked source, manifests, and infrastructure
+files. It describes what this repository includes; live-service integration remains
+bounded by the documented deployment and validation limitations.
+
+| Category | Included |
+| --- | --- |
+| Platforms | Microsoft Azure; GitHub Actions |
+| Services and stack | Entra ID; Event Hubs; Functions; Cosmos DB; Key Vault |
+| Languages and formats | Python; Bicep; Bicep parameters; Bash; JSON; YAML |
+| Delivery and IaC | Bicep + `.bicepparam`; GitHub Actions CI; YAML configuration; Python validation/tests |
+
 ## Problem statement
 
 Fresh multi-domain risk events are correlated into monitor, step-up, quarantine, or session-revocation decisions while break-glass users, duplicates, collisions, and stale evidence are handled safely.
