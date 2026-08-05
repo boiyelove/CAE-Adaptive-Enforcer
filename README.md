@@ -39,8 +39,6 @@ Stakeholders receive a decision package they can attach to a change record: requ
 
 The upper boundary names the principal services and technologies used by this repository. The lower boundary shows the implemented control flow: desired state is validated, provider action remains an explicit integration gate, and sanitized evidence is retained for review and deterministic replay.
 
-Azure product icons come from [Microsoft's official Azure Architecture Icons](https://learn.microsoft.com/azure/architecture/icons/). Open-source marks are sourced from [Simple Icons](https://simpleicons.org/) when shown; each mark identifies its respective technology.
-
 ## Reproduce the vertical slice
 
 The rules engine uses Python 3.11+ and no third-party packages.
@@ -110,3 +108,16 @@ See [architecture](docs/architecture.md), [threat model](docs/threat-model.md),
 - [Support policy](SUPPORT.md)
 - [Changelog](CHANGELOG.md)
 - [License](LICENSE)
+
+## Infrastructure inputs
+
+Resource behavior and deploy-time values are intentionally separated:
+
+- [Bicep template](infra/main.bicep) — Azure resources, modules, and security controls.
+- [Bicep parameters](infra/main.bicepparam) — environment-specific names, regions, identities, and feature inputs.
+
+Start with the parameter file's safe values, replace synthetic identifiers, and run an Azure what-if before deployment.
+
+## Attribution
+
+Azure product icons come from [Microsoft's official Azure Architecture Icons](https://learn.microsoft.com/azure/architecture/icons/). Open-source marks are sourced from [Simple Icons](https://simpleicons.org/) when shown; each mark identifies its respective technology.

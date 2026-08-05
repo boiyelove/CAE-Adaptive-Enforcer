@@ -1,4 +1,9 @@
+// CAE-Adaptive-Enforcer infrastructure template.
+// Resource behavior stays in this file; deployment-time values are supplied by ./main.bicepparam.
+
 targetScope = 'resourceGroup'
+
+// Deployment inputs: values are explicit, reviewable, and environment-specific.
 
 @description('Explicit opt-in because this creates chargeable Azure resources.')
 param deployPlatform bool = false
@@ -8,13 +13,14 @@ param deployEventSubscription bool = false
 
 @minLength(3)
 @maxLength(12)
-param namePrefix string = 'caeenforce'
+param namePrefix string
 
-param location string = resourceGroup().location
+param location string
 
 @description('Entra tenant accepted by the rules policy.')
 param tenantId string
 
+// Derived configuration: constructs deterministic names, IDs, and policy values.
 var suffix = uniqueString(subscription().subscriptionId, resourceGroup().id)
 var storageName = take(toLower(replace('${namePrefix}${suffix}', '-', '')), 24)
 var functionName = take('${namePrefix}-fn-${suffix}', 60)
@@ -31,6 +37,7 @@ var storageTableDataContributor = subscriptionResourceId(
   '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3'
 )
 
+// Resource logs: declares Microsoft.OperationalInsights/workspaces@2023-09-01 and its security settings.
 resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = if (deployPlatform) {
   name: '${namePrefix}-logs'
   location: location
@@ -42,6 +49,7 @@ resource logs 'Microsoft.OperationalInsights/workspaces@2023-09-01' = if (deploy
   }
 }
 
+// Resource insights: declares Microsoft.Insights/components@2020-02-02 and its security settings.
 resource insights 'Microsoft.Insights/components@2020-02-02' = if (deployPlatform) {
   name: '${namePrefix}-insights'
   location: location
@@ -54,6 +62,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = if (deployPlatfor
   }
 }
 
+// Resource storage: declares Microsoft.Storage/storageAccounts@2023-05-01 and its security settings.
 resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if (deployPlatform) {
   #disable-next-line BCP334
   name: storageName
@@ -73,6 +82,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2023-05-01' = if (deployPlat
   }
 }
 
+// Resource blobService: declares Microsoft.Storage/storageAccounts/blobServices@2023-05-01 and its security settings.
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' = if (deployPlatform) {
   parent: storage
   name: 'default'
@@ -89,6 +99,7 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01'
   }
 }
 
+// Resource auditContainer: declares Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01 and its security settings.
 resource auditContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = if (deployPlatform) {
   parent: blobService
   name: 'audit'
@@ -100,6 +111,7 @@ resource auditContainer 'Microsoft.Storage/storageAccounts/blobServices/containe
   }
 }
 
+// Resource auditImmutability: declares Microsoft.Storage/storageAccounts/blobServices/containers/immutabilityPolicies@2023-05-01 and its security settings.
 resource auditImmutability 'Microsoft.Storage/storageAccounts/blobServices/containers/immutabilityPolicies@2023-05-01' = if (deployPlatform) {
   parent: auditContainer
   name: 'default'
@@ -109,6 +121,7 @@ resource auditImmutability 'Microsoft.Storage/storageAccounts/blobServices/conta
   }
 }
 
+// Resource plan: declares Microsoft.Web/serverfarms@2024-04-01 and its security settings.
 resource plan 'Microsoft.Web/serverfarms@2024-04-01' = if (deployPlatform) {
   name: '${namePrefix}-plan'
   location: location
@@ -122,6 +135,7 @@ resource plan 'Microsoft.Web/serverfarms@2024-04-01' = if (deployPlatform) {
   }
 }
 
+// Resource functionApp: declares Microsoft.Web/sites@2024-04-01 and its security settings.
 resource functionApp 'Microsoft.Web/sites@2024-04-01' = if (deployPlatform) {
   name: functionName
   location: location
@@ -189,6 +203,7 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = if (deployPlatform) {
   }
 }
 
+// Resource blobRole: declares Microsoft.Authorization/roleAssignments@2022-04-01 and its security settings.
 resource blobRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (deployPlatform) {
   name: guid(storage.id, functionApp.id, storageBlobDataOwner)
   scope: storage
@@ -199,6 +214,7 @@ resource blobRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (dep
   }
 }
 
+// Resource queueRole: declares Microsoft.Authorization/roleAssignments@2022-04-01 and its security settings.
 resource queueRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (deployPlatform) {
   name: guid(storage.id, functionApp.id, storageQueueDataContributor)
   scope: storage
@@ -209,6 +225,7 @@ resource queueRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (de
   }
 }
 
+// Resource tableRole: declares Microsoft.Authorization/roleAssignments@2022-04-01 and its security settings.
 resource tableRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (deployPlatform) {
   name: guid(storage.id, functionApp.id, storageTableDataContributor)
   scope: storage
@@ -219,6 +236,7 @@ resource tableRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (de
   }
 }
 
+// Resource topic: declares Microsoft.EventGrid/topics@2023-12-15-preview and its security settings.
 resource topic 'Microsoft.EventGrid/topics@2023-12-15-preview' = if (deployPlatform) {
   name: '${namePrefix}-signals'
   location: location
@@ -232,6 +250,7 @@ resource topic 'Microsoft.EventGrid/topics@2023-12-15-preview' = if (deployPlatf
   }
 }
 
+// Resource eventSubscription: declares Microsoft.EventGrid/topics/eventSubscriptions@2023-12-15-preview and its security settings.
 resource eventSubscription 'Microsoft.EventGrid/topics/eventSubscriptions@2023-12-15-preview' = if (deployPlatform && deployEventSubscription) {
   parent: topic
   name: 'adaptive-enforcer'
@@ -257,6 +276,7 @@ resource eventSubscription 'Microsoft.EventGrid/topics/eventSubscriptions@2023-1
   }
 }
 
+// Resource topicDiagnostics: declares Microsoft.Insights/diagnosticSettings@2021-05-01-preview and its security settings.
 resource topicDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (deployPlatform) {
   scope: topic
   name: 'central-logs'
@@ -280,5 +300,7 @@ resource topicDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-prev
 // Post-deployment Entra gate: admin-consent only this Graph application role
 // to the Function managed identity: User.RevokeSessions.All
 // appRoleId: 77f3a031-c388-4f99-b373-dc68676a979e
+
+// Deployment outputs: expose identifiers needed by operators and downstream automation.
 output functionPrincipalId string = deployPlatform ? functionApp.identity.principalId : ''
 output graphApplicationRole string = 'User.RevokeSessions.All'
